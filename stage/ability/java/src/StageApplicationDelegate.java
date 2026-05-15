@@ -1280,6 +1280,8 @@ public class StageApplicationDelegate {
 
     private native void nativeSetIsDynamicLoadLibs(boolean isDynamic);
 
+    protected static native void nativeSetOhosHapMode(boolean isOhosHapMode);
+
     private native void nativeSetHapPath(String hapPath);
 
     private native void nativeSetPackageName(String hapPath);

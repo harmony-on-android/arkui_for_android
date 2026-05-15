@@ -93,4 +93,14 @@ public class StageApplication extends Application {
     public boolean onShouldLoadUI() {
         return true;
     }
+
+    /**
+     * Enable OHOS HAP compatibility mode.
+     * Must be called BEFORE onCreate() to affect the VM initialization.
+     *
+     * @param enable true to enable OHOS HAP mode.
+     */
+    public static void setOhosHapMode(boolean enable) {
+        StageApplicationDelegate.nativeSetOhosHapMode(enable);
+    }
 }
