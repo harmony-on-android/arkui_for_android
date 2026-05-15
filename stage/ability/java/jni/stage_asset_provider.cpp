@@ -592,7 +592,9 @@ std::string StageAssetProvider::GetResourceDir(const std::string& moduleName) co
 void StageAssetProvider::GetResIndexPath(
     const std::string& moduleName, std::string& appResIndexPath, std::string& sysResIndexPath)
 {
-    appResIndexPath = resourcesFilePrefixPath_ + SEPARATOR + moduleName + SEPARATOR + RESOURCES_INDEX_NAME;
+    std::string fullModuleName = GetSplicingModuleName(moduleName);
+    std::string realModuleName = fullModuleName.empty() ? moduleName : fullModuleName;
+    appResIndexPath = resourcesFilePrefixPath_ + SEPARATOR + realModuleName + SEPARATOR + RESOURCES_INDEX_NAME;
     sysResIndexPath = resourcesFilePrefixPath_ + SEPARATOR + SYSTEM_RES_INDEX_NAME + SEPARATOR + RESOURCES_INDEX_NAME;
 }
 
