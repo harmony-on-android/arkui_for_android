@@ -26,6 +26,7 @@
 #include "adapter/android/entrance/java/jni/jni_environment.h"
 #include "base/log/log.h"
 #include "base/utils/utils.h"
+#include <cstdlib>
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -51,6 +52,11 @@ bool StageApplicationDelegateJni::Register(const std::shared_ptr<JNIEnv>& env)
             .name = "nativeSetIsDynamicLoadLibs",
             .signature = "(Z)V",
             .fnPtr = reinterpret_cast<void*>(&SetIsDynamicLoadLibs),
+        },
+        {
+            .name = "nativeSetOhosHapMode",
+            .signature = "(Z)V",
+            .fnPtr = reinterpret_cast<void*>(&SetOhosHapMode),
         },
         {
             .name = "nativeSetHapPath",
@@ -184,6 +190,12 @@ void StageApplicationDelegateJni::SetIsDynamicLoadLibs(JNIEnv* env, jclass clazz
 {
     CHECK_NULL_VOID(env);
     StageAssetProvider::GetInstance()->SetIsDynamicLoadLibs(isDynamic);
+}
+
+void StageApplicationDelegateJni::SetOhosHapMode(JNIEnv* env, jclass clazz, jboolean isOhosHapMode)
+{
+    setenv("OHOS_HAP_MODE", isOhosHapMode ? "1" : "0", 1);
+    LOGI("SetOhosHapMode: %{public}s", isOhosHapMode ? "true" : "false");
 }
 
 void StageApplicationDelegateJni::SetHapPath(JNIEnv* env, jclass myclass, jstring str)
