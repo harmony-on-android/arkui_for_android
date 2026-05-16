@@ -27,8 +27,8 @@ std::string GetSystemPath(const std::string& fileName)
         if (pos != std::string::npos && pos + filesWithSlash.length() == dataDirPath.length()) {
             dataDirPath = dataDirPath.substr(0, pos);
         }
-        return dataDirPath + "/arkui-x/systemres/abc/" + fileName;
+        return dataDirPath + "/sys/systemres/abc/" + fileName;
     }
-    return "/arkui-x/systemres/abc/" + fileName;
+    return "/sys/systemres/abc/" + fileName;
 }
 } // namespace OHOS::Ace::NG

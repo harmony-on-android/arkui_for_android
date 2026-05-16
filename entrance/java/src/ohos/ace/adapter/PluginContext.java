@@ -75,7 +75,7 @@ public class PluginContext {
      * @since 11
      */
     public String getRawFilePath(String name, String filePath) {
-        String path = this.context.getFilesDir().getAbsolutePath() + "/arkui-x/" + name + "/resources/rawfile/"
+        String path = this.context.getFilesDir().getAbsolutePath() + "/hap/" + name + "/resources/rawfile/"
             + filePath;
         File file = new File(path);
         if (!file.exists()) {

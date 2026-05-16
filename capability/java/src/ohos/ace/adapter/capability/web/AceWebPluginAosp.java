@@ -60,7 +60,7 @@ public class AceWebPluginAosp extends AceWebPluginBase {
 
     private static final String ANDROID_VIRTUAL_ASSET_PREFIX = "file:///android_asset/";
 
-    private static final String ARKUIX_PATH_MARKER = "files/arkui-x/";
+    private static final String ARKUIX_PATH_MARKER = "files/hap/";
 
     private static final long INVALID_CREATE_ID = -1;
 
