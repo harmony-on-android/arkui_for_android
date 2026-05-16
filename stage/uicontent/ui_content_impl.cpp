@@ -277,7 +277,7 @@ void UIContentImpl::CommonInitialize(OHOS::Rosen::Window* window, const std::str
     LOGI("Initialize UIContent isModelJson:%{public}s", isModelJson ? "true" : "false");
     if (isModelJson) {
         auto hapPath = info != nullptr ? info->hapPath : "";
-        hapPath = hapPath.empty() ? "arkui-x/" + moduleName : hapPath;
+        hapPath = hapPath.empty() ? "hap/" + moduleName : hapPath;
         if (hapPath.at(hapPath.size() - 1) == '/') {
             hapPath = hapPath.substr(0, hapPath.size() - 1);
         }

@@ -43,7 +43,7 @@ const std::string ABILITY_STAGE_ABC_NAME = "AbilityStage.abc";
 const std::string MODULE_STAGE_ABC_NAME = "modules.abc";
 const std::string TEMP_DIR = "/temp";
 const std::string FILES_DIR = "/files";
-const std::string ARKUI_X_DIR = "/arkui-x";
+const std::string ARKUI_X_DIR = "/hap";
 const std::string PREFERENCE_DIR = "/preference";
 const std::string DATABASE_DIR = "/database";
 const std::string ASSETS_DIR = "/assets";
@@ -576,7 +576,7 @@ void StageAssetProvider::GetResIndexPath(
 {
     std::string fullModuleName = GetSplicingModuleName(moduleName);
     std::string realModuleName = fullModuleName.empty() ? moduleName : fullModuleName;
-    appResIndexPath = resourcesFilePrefixPath_ + SEPARATOR + realModuleName + SEPARATOR + RESOURCES_INDEX_NAME;
+    appResIndexPath = GetAppDataModuleDir() + SEPARATOR + realModuleName + SEPARATOR + RESOURCES_INDEX_NAME;
     sysResIndexPath = resourcesFilePrefixPath_ + SEPARATOR + SYSTEM_RES_INDEX_NAME + SEPARATOR + RESOURCES_INDEX_NAME;
 }
 
