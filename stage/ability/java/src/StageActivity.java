@@ -109,7 +109,7 @@ public class StageActivity extends Activity implements KeyboardHeightObserver {
 
     private static final String FILE_URI_KEY = "ability.params.stream";
 
-    private static final String ARKUI_X_DIR = "arkui-x";
+    private static final String ARKUI_X_DIR = "hap";
 
     private static final Map<String, String> ACTION_MAPPING = new ConcurrentHashMap<>();
 

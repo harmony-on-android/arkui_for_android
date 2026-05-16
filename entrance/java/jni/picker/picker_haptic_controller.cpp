@@ -23,7 +23,7 @@ namespace OHOS::Ace::NG {
 namespace {
 using std::chrono_literals::operator""s;
 using std::chrono_literals::operator""ms;
-const std::string AUDIO_URI = "arkui-x/systemres/resources/base/media/timepicker.wav";
+const std::string AUDIO_URI = "sys/systemres/resources/base/media/timepicker.wav";
 const std::string EFFECT_ID_NAME = "haptic.slide";
 constexpr std::chrono::milliseconds DEFAULT_DELAY(40);
 constexpr std::chrono::milliseconds EXTENDED_DELAY(50);

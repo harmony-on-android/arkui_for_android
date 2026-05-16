@@ -1183,7 +1183,7 @@ public class AceVideoAosp extends AceVideoBase
         try {
             if (stageMode) {
                 try {
-                    String filePath = "arkui-x" + File.separator + moduleName + File.separator + "ets" + param;
+                    String filePath = "hap" + File.separator + moduleName + File.separator + "ets" + param;
                     ALog.i(LOG_TAG, "setDataSourc hapPath:" + filePath);
                     assetFd = assetManage.openFd(filePath);
                 } catch (IOException ignored) {

@@ -75,7 +75,7 @@ import org.json.JSONObject;
 public class StageApplicationDelegate {
     private static final String LOG_TAG = "StageApplicationDelegate";
 
-    private static final String ASSETS_SUB_PATH = "arkui-x";
+    private static final String ASSETS_SUB_PATH = "sys";
 
     private static final String TEMP_DIR = "/temp";
 
@@ -97,7 +97,7 @@ public class StageApplicationDelegate {
 
     private static final String WANT_PARAMS = "params";
 
-    private static final String ARKUIX_LIBS = "/arkui-x/libs/";
+    private static final String ARKUIX_LIBS = "/hap/libs/";
 
     private static final String ARKUIX_LIB_NAME = "/libarkui_android.so";
 
@@ -109,7 +109,7 @@ public class StageApplicationDelegate {
 
     private static final String CACERT_FILE = "/cacert.ca";
 
-    private static final String ARKUIX_JSON = "arkui-x.json";
+    private static final String SYS_JSON = "sys.json";
 
     private static final String LANGUAGE_SHARE_PREFERENCE = "language_prefs";
 
@@ -508,7 +508,7 @@ public class StageApplicationDelegate {
             for (String name : list) {
                 if ("systemres".equals(name)) {
                     moduleResources.add(name);
-                } else {
+                } else if (!"stub".equals(name)) {
                     moduleResourcesDirectory = name + "/" + "resources";
                     moduleResourcesIndex = name + "/" + "resources.index";
                     moduleResources.add(moduleResourcesDirectory);
@@ -798,7 +798,7 @@ public class StageApplicationDelegate {
 
     /**
      * Extract stub.an from assets to app's filesDir.
-     * stub.an is packaged per-architecture under assets/arkui-x/stub/<arch>/stub.an.
+     * stub.an is packaged per-architecture under assets/sys/stub/<arch>/stub.an.
      * The file is copied to filesDir so that C++ MmapLoad can load it via a real path.
      *
      * @param context application context
@@ -1152,7 +1152,7 @@ public class StageApplicationDelegate {
         if (allPath != null && !allPath.isEmpty()) {
             String[] pathArray = allPath.split(";");
             for (String path : pathArray) {
-                if (path.contains(ARKUIX_JSON)) {
+                if (path.contains(SYS_JSON)) {
                     return path;
                 }
             }
