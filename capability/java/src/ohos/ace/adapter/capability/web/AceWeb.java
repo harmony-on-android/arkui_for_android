@@ -61,6 +61,8 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import android.animation.ValueAnimator;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
@@ -128,6 +130,11 @@ public class AceWeb extends AceWebBase {
     private static final String SUCCESS_TAG = "success";
 
     private static final String FAIL_TAG = "fail";
+
+    // HOA: virtual host for serving HAP local files through shouldInterceptRequest,
+    // because Chrome WebView 118+ blocks file:// access without calling shouldInterceptRequest.
+    private static final String HOA_FILE_HOST = "hoa.internal";
+    private static final String HOA_FILE_PREFIX = "http://" + HOA_FILE_HOST;
 
     private static final String WEBVIEW_ACESS_STEP = "accessStep";
     private static final String WEBVIEW_PARAM_LOAD_URL = "load_url";
@@ -790,9 +797,12 @@ public class AceWeb extends AceWebBase {
                 Object response = AceWeb.this.fireShouldInterceptRequest(object);
                 if (response instanceof WebResourceResponse) {
                     return (WebResourceResponse) response;
-                } else {
-                    return handleSchemeRequest(view, request);
                 }
+                WebResourceResponse schemeResponse = handleSchemeRequest(view, request);
+                if (schemeResponse != null) {
+                    return schemeResponse;
+                }
+                return handleFileRequest(request);
             }
 
             @Override
@@ -1087,6 +1097,74 @@ public class AceWeb extends AceWebBase {
         return handler.getResponse();
     }
 
+    // HOA: file:// → http://hoa.internal/ so shouldInterceptRequest gets called.
+    private static String rewriteFileUrl(String url) {
+        if (url == null) {
+            return url;
+        }
+        if (url.startsWith("file:///")) {
+            String rewritten = HOA_FILE_PREFIX + url.substring(7); // strip "file://"
+            return rewritten;
+        }
+        // Bare absolute path — Android WebView auto-prepends file://
+        if (url.startsWith("/data/")) {
+            return HOA_FILE_PREFIX + url;
+        }
+        return url;
+    }
+
+    // HOA: Intercept http://hoa.internal/ requests and serve local files.
+    private WebResourceResponse handleFileRequest(WebResourceRequest request) {
+        Uri url = request.getUrl();
+        if (!HOA_FILE_HOST.equals(url.getHost())) {
+            return null;
+        }
+        String path = url.getPath();
+        if (path == null) {
+            return null;
+        }
+        File file = new File(path);
+        if (!file.exists() || !file.isFile()) {
+            ALog.w(LOG_TAG, "handleFileRequest: not found: " + path);
+            return null;
+        }
+        try {
+            String mimeType = guessMimeType(path);
+            boolean isText = mimeType.startsWith("text/")
+                    || "application/javascript".equals(mimeType)
+                    || "application/json".equals(mimeType)
+                    || "application/xml".equals(mimeType);
+            FileInputStream fis = new FileInputStream(file);
+            return new WebResourceResponse(mimeType, isText ? "UTF-8" : null, fis);
+        } catch (FileNotFoundException e) {
+            ALog.e(LOG_TAG, "handleFileRequest: cannot open: " + path);
+            return null;
+        }
+    }
+
+    private static String guessMimeType(String path) {
+        String lower = path.toLowerCase();
+        if (lower.endsWith(".html") || lower.endsWith(".htm")) return "text/html";
+        if (lower.endsWith(".js")) return "application/javascript";
+        if (lower.endsWith(".css")) return "text/css";
+        if (lower.endsWith(".json")) return "application/json";
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".gif")) return "image/gif";
+        if (lower.endsWith(".svg")) return "image/svg+xml";
+        if (lower.endsWith(".webp")) return "image/webp";
+        if (lower.endsWith(".woff")) return "font/woff";
+        if (lower.endsWith(".woff2")) return "font/woff2";
+        if (lower.endsWith(".ttf")) return "font/ttf";
+        if (lower.endsWith(".xml")) return "application/xml";
+        if (lower.endsWith(".txt")) return "text/plain";
+        if (lower.endsWith(".ico")) return "image/x-icon";
+        if (lower.endsWith(".mp3")) return "audio/mpeg";
+        if (lower.endsWith(".mp4")) return "video/mp4";
+        if (lower.endsWith(".pdf")) return "application/pdf";
+        return "application/octet-stream";
+    }
+
     /**
      * This is called to set the websetting.
      *
@@ -1103,7 +1181,12 @@ public class AceWeb extends AceWebBase {
         webSettings.setDisplayZoomControls(false);
 
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        webSettings.setAllowFileAccess(false);
+
+        // HOA: file:// and content:// access must be enabled so that WebView
+        // can load HAP resources (HTML, JS, images) that the framework maps
+        // to file:///android_asset/... paths.  Without this, rawfile resources
+        // loaded via resource://rawfile/ fail with ERR_ACCESS_DENIED.
+        webSettings.setAllowFileAccess(true);
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         webSettings.setLoadsImagesAutomatically(true);
         webSettings.setDefaultTextEncodingName("utf-8");
@@ -1112,7 +1195,7 @@ public class AceWeb extends AceWebBase {
         webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         webSettings.setBlockNetworkImage(true);
         webSettings.setGeolocationEnabled(true);
-        webSettings.setAllowContentAccess(false);
+        webSettings.setAllowContentAccess(true);
 
         webSettings.setAllowFileAccessFromFileURLs(true);
         WebView.setWebContentsDebuggingEnabled(false);
@@ -1187,7 +1270,7 @@ public class AceWeb extends AceWebBase {
      */
     public String loadUrl(String url) {
         if (webView != null) {
-            this.webView.loadUrl(url);
+            this.webView.loadUrl(rewriteFileUrl(url));
             return SUCCESS_TAG;
         }
         return FAIL_TAG;
@@ -1204,7 +1287,7 @@ public class AceWeb extends AceWebBase {
         if (this.webView == null) {
             return;
         }
-        this.webView.loadUrl(url, header);
+        this.webView.loadUrl(rewriteFileUrl(url), header);
     }
 
     /**
@@ -1284,7 +1367,7 @@ public class AceWeb extends AceWebBase {
         }
         String webSrc = params.get(WEBVIEW_SRC);
         if (webView != null) {
-            this.webView.loadUrl(webSrc);
+            this.webView.loadUrl(rewriteFileUrl(webSrc));
             return SUCCESS_TAG;
         }
         return FAIL_TAG;
