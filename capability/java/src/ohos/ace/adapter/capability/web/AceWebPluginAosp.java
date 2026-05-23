@@ -23,6 +23,7 @@ import android.widget.FrameLayout;
 
 import ohos.ace.adapter.ALog;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -61,6 +62,17 @@ public class AceWebPluginAosp extends AceWebPluginBase {
     private static final String ANDROID_VIRTUAL_ASSET_PREFIX = "file:///android_asset/";
 
     private static final String ARKUIX_PATH_MARKER = "files/hap/";
+
+    /**
+     * HarmonyOS-specific scheme for resources bundled in the HAP package.
+     * Android WebView does not understand this scheme, so it must be
+     * rewritten to a file:// URL before loading.
+     * The NapiWebviewController::LoadUrl NAPI handler (programmatic
+     * controller.loadUrl() path) already performs this conversion in
+     * js_web_webview.cpp via GetRawFileUrl().  This handler covers
+     * the Web({src: "resource://rawfile/..."}) declarative path.
+     */
+    private static final String RESOURCE_RAWFILE_PREFIX = "resource://rawfile/";
 
     private static final long INVALID_CREATE_ID = -1;
 
@@ -120,7 +132,8 @@ public class AceWebPluginAosp extends AceWebPluginBase {
             aceWeb.initWeb();
             aceWeb.setIncognitoMode(String.valueOf(webincognitoMode));
             aceWeb.setPageUrl(pageUrl);
-            aceWeb.loadUrl(toAndroidAssetUrl(webSrc));
+            String finalUrl = toAndroidAssetUrl(webSrc);
+            aceWeb.loadUrl(finalUrl);
             int physicalWidth = toPhysicalPixels(Double.parseDouble(param.get(WEBVIEW_WIDTH)));
             int physicalHeight = toPhysicalPixels(Double.parseDouble(param.get(WEBVIEW_HEIGHT)));
             int top = toPhysicalPixels(Double.parseDouble(param.get(WEBVIEW_TOP)));
@@ -181,6 +194,18 @@ public class AceWebPluginAosp extends AceWebPluginBase {
             return webUrl;
         }
 
+        // Convert resource://rawfile/ URLs to file:// URLs so that
+        // Android WebView (which does not understand this scheme) can
+        // load the content.  The rawfile resources are extracted under
+        // <filesDir>/hap/<bundle>.<module>/resources/rawfile/ on Android.
+        if (webUrl.startsWith(RESOURCE_RAWFILE_PREFIX)) {
+            String relativePath = webUrl.substring(RESOURCE_RAWFILE_PREFIX.length());
+            String resolved = resolveRawfileUrl(relativePath);
+            if (resolved != null) {
+                return resolved;
+            }
+        }
+
         int pos = webUrl.indexOf(ARKUIX_PATH_MARKER);
         if (pos != -1) {
             String assetUrl = ANDROID_VIRTUAL_ASSET_PREFIX + webUrl.substring(pos + "files/".length());
@@ -189,6 +214,48 @@ public class AceWebPluginAosp extends AceWebPluginBase {
             }
         }
         return webUrl;
+    }
+
+    /**
+     * Resolves a resource://rawfile/ relative path to a file:// URL
+     * by scanning the HAP data directories under files/hap/ on disk.
+     *
+     * @param relativePath path relative to resources/rawfile/, e.g. "web/index.html"
+     * @return a "file://" URL if found, or null
+     */
+    private String resolveRawfileUrl(String relativePath) {
+        if (relativePath == null) {
+            return null;
+        }
+        File hapRoot = new File(context.getFilesDir(), "hap");
+        if (!hapRoot.isDirectory()) {
+            return null;
+        }
+        File[] hapDirs = hapRoot.listFiles();
+        if (hapDirs == null) {
+            return null;
+        }
+        for (File hapDir : hapDirs) {
+            if (!hapDir.isDirectory()) {
+                continue;
+            }
+            File rawFile = new File(hapDir, "resources/rawfile/" + relativePath);
+            if (rawFile.exists()) {
+                return "file://" + rawFile.getAbsolutePath();
+            }
+        }
+        // Fallback: try to find raw resources without "rawfile" subdir
+        // (some HAPs flatten the structure)
+        for (File hapDir : hapDirs) {
+            if (!hapDir.isDirectory()) {
+                continue;
+            }
+            File rawFile = new File(hapDir, "resources/" + relativePath);
+            if (rawFile.exists()) {
+                return "file://" + rawFile.getAbsolutePath();
+            }
+        }
+        return null;
     }
 
     private boolean existsVirtualAsset(String url) {
