@@ -112,6 +112,7 @@ public:
     void SetCacheDir(const std::string& filesRootDir);
     void SetFileDir(const std::string& filesRootDir);
     void SetFilesDir(const std::string& filesDir);
+    void SetSystemFilesDir(const std::string& systemFilesDir);
     void SetAppDataDir(const std::string& appDataDir);
     void SetAppLibDir(const std::string& libDir);
     std::string GetAppLibDir() const;
@@ -121,6 +122,7 @@ public:
     std::string GetCacheDir() const;
     std::string GetTempDir() const;
     std::string GetFilesDir() const;
+    std::string GetSystemFilesDir() const;
     std::string GetDatabaseDir() const;
     std::string GetPreferencesDir() const;
     std::string GetResourceDir(const std::string& moduleName) const;
@@ -169,6 +171,7 @@ private:
     std::string cacheDir_;
     std::string tempDir_;
     std::string filesDir_;
+    std::string systemFilesDir_;
     std::string databaseDir_;
     std::string appLibDir_;
     std::string appDataLibDir_;

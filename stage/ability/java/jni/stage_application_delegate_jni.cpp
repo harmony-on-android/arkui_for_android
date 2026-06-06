@@ -94,6 +94,11 @@ bool StageApplicationDelegateJni::Register(const std::shared_ptr<JNIEnv>& env)
             .fnPtr = reinterpret_cast<void*>(&SetFilesDir),
         },
         {
+            .name = "nativeSetSystemFilesDir",
+            .signature = "(Ljava/lang/String;)V",
+            .fnPtr = reinterpret_cast<void*>(&SetSystemFilesDir),
+        },
+        {
             .name = "nativeSetAppDataDir",
             .signature = "(Ljava/lang/String;)V",
             .fnPtr = reinterpret_cast<void*>(&SetAppDataDir),
@@ -291,6 +296,19 @@ void StageApplicationDelegateJni::SetFilesDir(JNIEnv* env, jclass myclass, jstri
     auto filesDir = env->GetStringUTFChars(str, nullptr);
     if (filesDir != nullptr) {
         StageAssetProvider::GetInstance()->SetFilesDir(filesDir);
+        env->ReleaseStringUTFChars(str, filesDir);
+    }
+}
+
+void StageApplicationDelegateJni::SetSystemFilesDir(JNIEnv* env, jclass myclass, jstring str)
+{
+    if (env == nullptr) {
+        LOGE("env is nullptr");
+        return;
+    }
+    auto filesDir = env->GetStringUTFChars(str, nullptr);
+    if (filesDir != nullptr) {
+        StageAssetProvider::GetInstance()->SetSystemFilesDir(filesDir);
         env->ReleaseStringUTFChars(str, filesDir);
     }
 }

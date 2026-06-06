@@ -473,17 +473,16 @@ public class StageApplicationDelegate {
         }
         setFileDir(filesDir);
 
-        // When storage is redirected to a per-HAP path, restore the app-level
-        // paths that are NOT per-HAP scoped:
+        // When storage is redirected to a per-HAP path:
         //
-        //   filesDir_    → app-level (used by GetSystemPath() to find sys resources)
-        //   sandbox dir  → app-level (arkuiXSandboxDir_ = module discovery root)
+        //   systemFilesDir_ → app-level (used by GetSystemPath() to find sys resources)
+        //   sandbox dir     → app-level (arkuiXSandboxDir_ = module discovery root)
         //
         // Per-HAP scoped (set by setFileDir above):
-        //   tempDir_, preferenceDir_, databaseDir_
+        //   filesDir_, tempDir_, preferenceDir_, databaseDir_
         String appFilesDir = stageApplication.getApplicationContext().getFilesDir().getPath();
         if (sModuleDataDir != null) {
-            setFilesDir(appFilesDir + FILES_DIR);
+            setSystemFilesDir(appFilesDir + FILES_DIR);
         }
         setAppDataDir(appFilesDir + "/hap");
 
@@ -908,14 +907,25 @@ public class StageApplicationDelegate {
     }
 
     /**
-     * Set files dir to native (app-level, for system resource discovery).
-     * This is separate from setFileDir so that per-HAP storage redirection
-     * does not affect system paths like GetSystemResAbcPath.
+     * Set files dir to native.  This sets filesDir_ to the per-HAP path
+     * (when sModuleDataDir is set), making getContext().filesDir point to
+     * the per-HAP module's files/ directory.
      *
-     * @param filesDir the files dir (typically appFilesDir/files).
+     * @param filesDir the files dir (typically <sModuleDataDir>/files).
      */
     public void setFilesDir(String filesDir) {
         nativeSetFilesDir(filesDir);
+    }
+
+    /**
+     * Set system files dir to native (app-level, for system resource discovery).
+     * This is independent of per-HAP storage redirection — it always receives
+     * the app-level files path so GetSystemPath() can find sys/systemres/abc/.
+     *
+     * @param filesDir the system files dir (typically appFilesDir/files).
+     */
+    public void setSystemFilesDir(String filesDir) {
+        nativeSetSystemFilesDir(filesDir);
     }
 
     /**
@@ -1352,6 +1362,8 @@ public class StageApplicationDelegate {
     private native void nativeSetFileDir(String filesDir);
 
     private native void nativeSetFilesDir(String filesDir);
+
+    private native void nativeSetSystemFilesDir(String filesDir);
 
     private native void nativeSetAppDataDir(String appDataDir);
 

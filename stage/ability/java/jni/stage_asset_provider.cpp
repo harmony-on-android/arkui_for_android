@@ -513,6 +513,12 @@ void StageAssetProvider::SetFilesDir(const std::string& filesDir)
     filesDir_ = filesDir;
 }
 
+void StageAssetProvider::SetSystemFilesDir(const std::string& systemFilesDir)
+{
+    LOGI("SetSystemFilesDir: %{public}s", systemFilesDir.c_str());
+    systemFilesDir_ = systemFilesDir;
+}
+
 void StageAssetProvider::SetAppDataDir(const std::string& appDataDir)
 {
     LOGI("SetAppDataDir: %{public}s", appDataDir.c_str());
@@ -573,6 +579,11 @@ std::string StageAssetProvider::GetTempDir() const
 std::string StageAssetProvider::GetFilesDir() const
 {
     return filesDir_;
+}
+
+std::string StageAssetProvider::GetSystemFilesDir() const
+{
+    return systemFilesDir_;
 }
 
 std::string StageAssetProvider::GetDatabaseDir() const

@@ -19,7 +19,7 @@
 namespace OHOS::Ace::NG {
 std::string GetSystemPath(const std::string& fileName)
 {
-    std::string dataDirPath = AbilityRuntime::Platform::StageAssetProvider::GetInstance()->GetFilesDir();
+    std::string dataDirPath = AbilityRuntime::Platform::StageAssetProvider::GetInstance()->GetSystemFilesDir();
     LOGI("GetSystemResAbcPath: Got path from StageAssetProvider: %{public}s", dataDirPath.c_str());
     if (!dataDirPath.empty()) {
         const std::string filesWithSlash = "/files";
