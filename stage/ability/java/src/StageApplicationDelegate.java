@@ -487,7 +487,13 @@ public class StageApplicationDelegate {
         }
         setAppDataDir(appFilesDir + "/hap");
 
-        String cacheDir = stageApplication.getApplicationContext().getCacheDir().getPath();
+        String cacheDir;
+        if (sModuleDataDir != null) {
+            cacheDir = sModuleDataDir + "/cache";
+            makeNewDir(cacheDir);
+        } else {
+            cacheDir = stageApplication.getApplicationContext().getCacheDir().getPath();
+        }
         setCacheDir(cacheDir);
     }
 
