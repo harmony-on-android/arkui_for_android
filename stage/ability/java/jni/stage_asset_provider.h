@@ -111,6 +111,8 @@ public:
     Ace::RefPtr<AssetProvider> CreateAndFindAssetProvider(const std::string& path);
     void SetCacheDir(const std::string& filesRootDir);
     void SetFileDir(const std::string& filesRootDir);
+    void SetFilesDir(const std::string& filesDir);
+    void SetAppDataDir(const std::string& appDataDir);
     void SetAppLibDir(const std::string& libDir);
     std::string GetAppLibDir() const;
     void SetStubFilePath(const std::string& stubPath);

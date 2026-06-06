@@ -451,13 +451,42 @@ public class StageApplicationDelegate {
         }
     }
 
+    /**
+     * HOA (Harmony on Android) per-HAP module data directory override.
+     * When set before {@link #initApplication(StageApplication)}, storage
+     * (Preferences, RDB, KV Store) is isolated under this directory instead
+     * of the shared app-level filesDir.  Each HAP process sets this to its
+     * own <code>files/hap/&lt;bundleName&gt;.&lt;moduleName&gt;/</code> path.
+     */
+    public static String sModuleDataDir = null;
+
     private void createStagePath() {
-        String filesDir = stageApplication.getApplicationContext().getFilesDir().getPath();
+        String filesDir;
+        if (sModuleDataDir != null) {
+            filesDir = sModuleDataDir;
+        } else {
+            filesDir = stageApplication.getApplicationContext().getFilesDir().getPath();
+        }
         String[] fileDirNames = {TEMP_DIR, FILES_DIR, PREFERENCE_DIR, DATABASE_DIR, "/" + ASSETS_SUB_PATH};
         for (int i = 0; i < fileDirNames.length; i++) {
             makeNewDir(filesDir + fileDirNames[i]);
         }
         setFileDir(filesDir);
+
+        // When storage is redirected to a per-HAP path, restore the app-level
+        // paths that are NOT per-HAP scoped:
+        //
+        //   filesDir_    → app-level (used by GetSystemPath() to find sys resources)
+        //   sandbox dir  → app-level (arkuiXSandboxDir_ = module discovery root)
+        //
+        // Per-HAP scoped (set by setFileDir above):
+        //   tempDir_, preferenceDir_, databaseDir_
+        String appFilesDir = stageApplication.getApplicationContext().getFilesDir().getPath();
+        if (sModuleDataDir != null) {
+            setFilesDir(appFilesDir + FILES_DIR);
+        }
+        setAppDataDir(appFilesDir + "/hap");
+
         String cacheDir = stageApplication.getApplicationContext().getCacheDir().getPath();
         setCacheDir(cacheDir);
     }
@@ -870,6 +899,28 @@ public class StageApplicationDelegate {
      */
     public void setFileDir(String filesDir) {
         nativeSetFileDir(filesDir);
+    }
+
+    /**
+     * Set files dir to native (app-level, for system resource discovery).
+     * This is separate from setFileDir so that per-HAP storage redirection
+     * does not affect system paths like GetSystemResAbcPath.
+     *
+     * @param filesDir the files dir (typically appFilesDir/files).
+     */
+    public void setFilesDir(String filesDir) {
+        nativeSetFilesDir(filesDir);
+    }
+
+    /**
+     * Set app data (sandbox/module discovery) dir to native.
+     * This is separate from setFileDir so that per-HAP storage redirection
+     * does not affect module discovery paths.
+     *
+     * @param appDataDir the app data dir (typically filesDir/hap).
+     */
+    public void setAppDataDir(String appDataDir) {
+        nativeSetAppDataDir(appDataDir);
     }
 
     /**
@@ -1293,6 +1344,10 @@ public class StageApplicationDelegate {
     private native void nativeSetCacheDir(String cacheDir);
 
     private native void nativeSetFileDir(String filesDir);
+
+    private native void nativeSetFilesDir(String filesDir);
+
+    private native void nativeSetAppDataDir(String appDataDir);
 
     private native void nativeSetAppLibDir(String libDir);
 

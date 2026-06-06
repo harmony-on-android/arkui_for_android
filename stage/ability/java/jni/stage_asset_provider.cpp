@@ -503,17 +503,30 @@ void StageAssetProvider::SetFileDir(const std::string& filesRootDir)
     filesDir_ = filesRootDir + FILES_DIR;
     preferenceDir_ = filesRootDir + PREFERENCE_DIR;
     databaseDir_ = filesRootDir + DATABASE_DIR;
-    arkuiXSandboxDir_ = filesRootDir + ARKUI_X_DIR;
+    // NOTE: arkuiXSandboxDir_ and appDataLibDir_ are set separately via
+    // SetAppDataDir() so they remain independent of per-HAP storage redirect.
+}
+
+void StageAssetProvider::SetFilesDir(const std::string& filesDir)
+{
+    LOGI("SetFilesDir: %{public}s", filesDir.c_str());
+    filesDir_ = filesDir;
+}
+
+void StageAssetProvider::SetAppDataDir(const std::string& appDataDir)
+{
+    LOGI("SetAppDataDir: %{public}s", appDataDir.c_str());
+    arkuiXSandboxDir_ = appDataDir;
     size_t lastSlashPos = appLibDir_.find_last_of('/');
     if (lastSlashPos != std::string::npos) {
         if (appLibDir_.substr(lastSlashPos) == "/arm64") {
-            appDataLibDir_ = filesRootDir + ARKUI_X_DIR + EXTERN_LIBS_DIR + ARCH_ARM64;
+            appDataLibDir_ = appDataDir + EXTERN_LIBS_DIR + ARCH_ARM64;
             architecture_ = ARCH_ARM64;
         } else if (appLibDir_.substr(lastSlashPos) == "/arm") {
-            appDataLibDir_ = filesRootDir + ARKUI_X_DIR + EXTERN_LIBS_DIR + ARCH_ARM;
+            appDataLibDir_ = appDataDir + EXTERN_LIBS_DIR + ARCH_ARM;
             architecture_ = ARCH_ARM;
         } else {
-            appDataLibDir_ = filesRootDir + ARKUI_X_DIR + EXTERN_LIBS_DIR + ARCH_X86;
+            appDataLibDir_ = appDataDir + EXTERN_LIBS_DIR + ARCH_X86;
             architecture_ = ARCH_X86;
         }
     }

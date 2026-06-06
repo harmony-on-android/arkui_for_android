@@ -38,6 +38,8 @@ public:
     static void LaunchApplication(JNIEnv* env, jclass clazz, jboolean isCopyNativeLibs, jboolean isNeedLoadAce);
     static void SetCacheDir(JNIEnv* env, jclass myclass, jstring str);
     static void SetFileDir(JNIEnv* env, jclass myclass, jstring str);
+    static void SetFilesDir(JNIEnv* env, jclass myclass, jstring str);
+    static void SetAppDataDir(JNIEnv* env, jclass myclass, jstring str);
     static void SetAppLibDir(JNIEnv* env, jclass myclass, jstring str);
     static void SetStubFilePath(JNIEnv* env, jclass myclass, jstring str);
     static void SetResourcesFilePrefixPath(JNIEnv* env, jclass myclass, jstring str);
