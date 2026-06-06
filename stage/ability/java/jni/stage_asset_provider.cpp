@@ -59,7 +59,7 @@ const std::string EXTERN_LIBS_DIR = "/libs";
 const std::string SYSTEM_FONT_DIR = "fonts";
 const std::string BASE_DIR = "/base";
 const std::string PROFILE_DIR = "/profile";
-const std::string RESFILE_DIR = "/resfile";
+const std::string RESFILE_DIR = "/rawfile";
 } // namespace
 std::shared_ptr<StageAssetProvider> StageAssetProvider::instance_ = nullptr;
 std::mutex StageAssetProvider::mutex_;
