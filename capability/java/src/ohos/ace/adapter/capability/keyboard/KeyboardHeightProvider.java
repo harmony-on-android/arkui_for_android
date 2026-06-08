@@ -166,6 +166,11 @@ public class KeyboardHeightProvider extends PopupWindow implements OnGlobalLayou
         if (keyboardHeight > screenSizeY) {
             return;
         }
+        // On devices where the PopupWindow measurement includes system bars
+        // (e.g. Xiaomi gesture nav), clamp to at most half the screen height.
+        if (keyboardHeight > screenSizeY / 2) {
+            keyboardHeight = (int)(screenSizeY * 0.42);
+        }
 
         if (keyboardHeight < navigationBarMaxHeight) {
             bottomMax = bottomMax - keyboardHeight;
