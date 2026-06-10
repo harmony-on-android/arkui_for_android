@@ -32,6 +32,8 @@ import android.view.View;
 import android.webkit.MimeTypeMap;
 
 import androidx.core.util.Consumer;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.window.java.layout.WindowInfoTrackerCallbackAdapter;
 import androidx.window.layout.DisplayFeature;
 import androidx.window.layout.FoldingFeature;
@@ -157,6 +159,7 @@ public class StageActivity extends Activity implements KeyboardHeightObserver {
     private BridgeManager bridgeManager = null;
 
     private KeyboardHeightProvider keyboardHeightProvider;
+    private int windowInsetsKeyboardHeight = 0;
 
     private Set<String> pluginList = new HashSet<>();
 
@@ -172,11 +175,20 @@ public class StageActivity extends Activity implements KeyboardHeightObserver {
 
     @Override
     public void onKeyboardHeightChanged(int height) {
+        // Prefer WindowInsets-based measurement (system-reported IME height)
+        // over the PopupWindow heuristic when available. This is more accurate
+        // especially when the activity does not set adjustResize.
+        int effectiveHeight = height;
+        if (windowInsetsKeyboardHeight > 0 && windowInsetsKeyboardHeight != height) {
+            ALog.i(LOG_TAG, "onKeyboardHeightChanged: override " + height +
+                " -> " + windowInsetsKeyboardHeight + " (from WindowInsets)");
+            effectiveHeight = windowInsetsKeyboardHeight;
+        }
         if (windowView != null) {
-            windowView.keyboardHeightChanged(height);
+            windowView.keyboardHeightChanged(effectiveHeight);
         }
         if (platformPlugin != null) {
-            platformPlugin.keyboardHeightChanged(height);
+            platformPlugin.keyboardHeightChanged(effectiveHeight);
         }
     }
 
@@ -215,6 +227,17 @@ public class StageActivity extends Activity implements KeyboardHeightObserver {
         Trace.endSection();
 
         keyboardHeightProvider = new KeyboardHeightProvider(this);
+
+        // Listen for IME (keyboard) insets from the system via WindowInsets.
+        // This gives the exact keyboard height reported by Android's IME system,
+        // which is used to correct the PopupWindow-based heuristic in
+        // onKeyboardHeightChanged().
+        ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), (v, insets) -> {
+            windowInsetsKeyboardHeight = insets.getInsets(
+                WindowInsetsCompat.Type.ime()).bottom;
+            return ViewCompat.onApplyWindowInsets(v, insets);
+        });
+        ViewCompat.requestApplyInsets(getWindow().getDecorView());
 
         windowView.getView().post(new Runnable() {
             /**
@@ -286,6 +309,8 @@ public class StageActivity extends Activity implements KeyboardHeightObserver {
         activityDelegate.dispatchOnDestroy(getInstanceName());
         windowView.destroy();
         arkUIXPluginRegistry.unRegistryAllPlugins();
+        ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), null);
+        windowInsetsKeyboardHeight = 0;
         keyboardHeightProvider.close();
         this.bridgeManager = null;
         if (platformPlugin != null) {
