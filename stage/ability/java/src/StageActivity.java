@@ -173,9 +173,6 @@ public class StageActivity extends Activity implements KeyboardHeightObserver {
 
     @Override
     public void onKeyboardHeightChanged(int height) {
-        // When adjustResize is set, Android resizes the window by the keyboard
-        // height. Suppress forwarding to windowView to prevent the engine from
-        // applying a second keyboard offset on top (double avoidance).
         int softInputMode = getWindow().getAttributes().softInputMode;
         boolean hasAdjustResize = (softInputMode &
             android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE) != 0;
