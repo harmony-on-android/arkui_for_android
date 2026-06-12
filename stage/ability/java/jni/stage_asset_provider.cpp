@@ -299,6 +299,22 @@ std::list<std::vector<uint8_t>> StageAssetProvider::GetModuleJsonBufferList()
         bufferList.emplace_back(moduleBuffer);
     }
 
+    // Also scan app data directory for HAP modules installed at runtime
+    auto appDataDir = GetAppDataModuleDir();
+    if (!appDataDir.empty()) {
+        std::vector<std::string> dirEntries;
+        GetAppDataModuleAssetList(appDataDir, dirEntries, true);
+        for (auto& entry : dirEntries) {
+            // Each subdirectory under appDataDir is a module directory
+            std::string moduleJsonPath = entry + "/" + MODULE_JSON_NAME;
+            std::vector<uint8_t> buffer = GetBufferByAppDataPath(moduleJsonPath);
+            if (!buffer.empty()) {
+                bufferList.emplace_back(std::move(buffer));
+                LOGI("Found module.json in app data: %{public}s", moduleJsonPath.c_str());
+            }
+        }
+    }
+
     return bufferList;
 }
 
